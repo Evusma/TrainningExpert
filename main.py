@@ -19,6 +19,9 @@ dtype_map = {
     "torch.bfloat16": torch.bfloat16,
 }
 
+max_new_tokens=int(config1['max_new_tokens']),
+use_cache=config1.getboolean('use_cache')
+
 app = FastAPI()
 
 tokenizer = AutoTokenizer.from_pretrained(config1['model_name'])
@@ -81,11 +84,11 @@ def chat(payload: ChatRequest) -> ChatResponse:
 
     outputs = model.generate(
         **inputs,
-        max_new_tokens=config1['max_new_tokens'],
+        max_new_tokens=max_new_tokens,
         do_sample=False,
         pad_token_id=tokenizer.eos_token_id,
         eos_token_id=tokenizer.eos_token_id,
-        use_cache=config1['use_cache'],
+        use_cache=use_cache,
     )
 
     response = tokenizer.decode(
