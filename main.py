@@ -10,7 +10,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-config_file = config["config3"]
+config_file = config["config4"]
 
 # Convert dtype safely
 dtype_map = {
@@ -85,7 +85,7 @@ def chat(payload: ChatRequest) -> ChatResponse:
         outputs = model.generate(
             **inputs,
             max_new_tokens=int(config_file["max_new_tokens"]),
-            do_sample=False,
+            do_sample=config_file.getboolean("do_sample"),
             pad_token_id=tokenizer.eos_token_id,
             eos_token_id=tokenizer.eos_token_id,
             use_cache=config_file.getboolean("use_cache"),
