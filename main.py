@@ -62,8 +62,8 @@ def chat(payload: ChatRequest) -> ChatResponse:
             "role": "system",
             "content": (
                 f"{config1['content_system_prompt']} "
-                f"{json.dumps(payload.tables, ensure_ascii=False)}",
-            ),
+                f"{json.dumps(payload.tables, ensure_ascii=False)}"
+            )
         },
         {
             "role": "user",
