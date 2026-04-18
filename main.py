@@ -1,30 +1,31 @@
 import json
-
 import torch
+import configparser
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2" # "Qwen/Qwen2.5-Coder-3B-Instruct"
-dtype=torch.float16
-device_map="auto"
-max_new_tokens=256
-use_cache=True
-content_system_prompt = (
-    "Return only valid Python Polars code. "
-    "No markdown fences. "
-    "Assign the final Polars DataFrame to result. "
-    "Available datasets: "
-)
 
+config = configparser.ConfigParser()
+config.read("config.ini")
+
+config1 = dict(config["config1"])
+
+# Convert dtype safely
+dtype_map = {
+    "torch.float16": torch.float16,
+    "torch.float32": torch.float32,
+    "torch.bfloat16": torch.bfloat16,
+}
 
 app = FastAPI()
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+tokenizer = AutoTokenizer.from_pretrained(config1['model_name'])
 model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    dtype=dtype,
-    device_map=device_map,
+    config1['model_name'],
+    dtype=dtype_map[config1["dtype"]],
+    device_map=config1['device_map'],
 )
 
 
@@ -60,7 +61,7 @@ def chat(payload: ChatRequest) -> ChatResponse:
         {
             "role": "system",
             "content": (
-                f"{content_system_prompt} "
+                f"{config1['content_system_prompt']} "
                 f"{json.dumps(payload.tables, ensure_ascii=False)}",
             ),
         },
@@ -80,11 +81,11 @@ def chat(payload: ChatRequest) -> ChatResponse:
 
     outputs = model.generate(
         **inputs,
-        max_new_tokens=max_new_tokens,
+        max_new_tokens=config1['max_new_tokens'],
         do_sample=False,
         pad_token_id=tokenizer.eos_token_id,
         eos_token_id=tokenizer.eos_token_id,
-        use_cache=use_cache,
+        use_cache=config1['use_cache'],
     )
 
     response = tokenizer.decode(
