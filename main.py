@@ -27,7 +27,7 @@ app = FastAPI()
 tokenizer = AutoTokenizer.from_pretrained(config1['model_name'])
 model = AutoModelForCausalLM.from_pretrained(
     config1['model_name'],
-    dtype=dtype_map[config1["dtype"]],
+    torch_dtype=dtype_map[config1["dtype"]],
     device_map=config1['device_map'],
 )
 
