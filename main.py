@@ -58,7 +58,6 @@ def health():
 
 
 @app.post("/chat", response_model=ChatResponse)
-@torch.inference_mode()
 def chat(payload: ChatRequest) -> ChatResponse:
     messages = [
         {
@@ -82,14 +81,15 @@ def chat(payload: ChatRequest) -> ChatResponse:
 
     inputs = tokenizer(text, return_tensors="pt").to(model.device)
 
-    outputs = model.generate(
-        **inputs,
-        max_new_tokens=max_new_tokens,
-        do_sample=False,
-        pad_token_id=tokenizer.eos_token_id,
-        eos_token_id=tokenizer.eos_token_id,
-        use_cache=use_cache,
-    )
+    with torch.inference_mode():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=int(config1["max_new_tokens"]),
+            do_sample=False,
+            pad_token_id=tokenizer.eos_token_id,
+            eos_token_id=tokenizer.eos_token_id,
+            use_cache=config1.getboolean("use_cache"),
+        )
 
     response = tokenizer.decode(
         outputs[0][inputs["input_ids"].shape[1]:],
