@@ -10,7 +10,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-config1 = config["config2"]
+config_file = config["config3"]
 
 # Convert dtype safely
 dtype_map = {
@@ -19,16 +19,16 @@ dtype_map = {
     "torch.bfloat16": torch.bfloat16,
 }
 
-max_new_tokens=int(config1['max_new_tokens']),
-use_cache=config1.getboolean('use_cache')
+max_new_tokens=int(config_file['max_new_tokens']),
+use_cache=config_file.getboolean('use_cache')
 
 app = FastAPI()
 
-tokenizer = AutoTokenizer.from_pretrained(config1['model_name'])
+tokenizer = AutoTokenizer.from_pretrained(config_file['model_name'])
 model = AutoModelForCausalLM.from_pretrained(
-    config1['model_name'],
-    torch_dtype=dtype_map[config1["dtype"]],
-    device_map=config1['device_map'],
+    config_file['model_name'],
+    torch_dtype=dtype_map[config_file["dtype"]],
+    device_map=config_file['device_map'],
 )
 
 
@@ -63,7 +63,7 @@ def chat(payload: ChatRequest) -> ChatResponse:
         {
             "role": "system",
             "content": (
-                f"{config1['content_system_prompt']} "
+                f"{config_file['content_system_prompt']} "
                 f"{json.dumps(payload.tables, ensure_ascii=False)}"
             )
         },
@@ -84,11 +84,11 @@ def chat(payload: ChatRequest) -> ChatResponse:
     with torch.inference_mode():
         outputs = model.generate(
             **inputs,
-            max_new_tokens=int(config1["max_new_tokens"]),
+            max_new_tokens=int(config_file["max_new_tokens"]),
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
             eos_token_id=tokenizer.eos_token_id,
-            use_cache=config1.getboolean("use_cache"),
+            use_cache=config_file.getboolean("use_cache"),
         )
 
     response = tokenizer.decode(
