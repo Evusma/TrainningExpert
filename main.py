@@ -10,7 +10,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-config_file = config["config4"]
+config_file = config["config3"]
 
 # Convert dtype safely
 dtype_map = {
